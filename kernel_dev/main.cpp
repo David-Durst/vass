@@ -16,12 +16,8 @@
 #include <boost/bind.hpp>
 #include <boost/asio/ssl.hpp>
 #include <fstream>
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
-#include <boost/archive/iterators/insert_linebreaks.hpp>
-
-using namespace boost::archive::iterators;
+// http://www.boost.org/doc/libs/1_45_0/doc/html/boost_asio/example/http/client/async_client.cpp
+// https://github.com/alexandruc/SimpleHttpsClient/blob/master/https_client.cpp
 using boost::asio::ip::tcp;
 
 class client
@@ -35,13 +31,6 @@ public:
     {
         SSL_set_tlsext_host_name(socket_.native_handle(),server.c_str());
         ctx.set_default_verify_paths();
-        /*ctx.set_options(boost::asio::ssl::context::default_workarounds
-                        | boost::asio::ssl::context::no_sslv2
-                        | boost::asio::ssl::context::no_sslv3
-                        | boost::asio::ssl::context::no_tlsv1
-                        | boost::asio::ssl::context::no_tlsv1_1);*/
-        //socket_.set_verify_mode(boost::asio::ssl::verify_none);
-        //ctx.load_verify_file("ca.pem");
         std::string b64ImgStr = base64_encode(reinterpret_cast<const unsigned char*>(binaryImgStr.c_str()), binaryImgStr.length());
         // Form the request. We specify the "Connection: close" header so that the
         // server will close the socket after transmitting the response. This will
@@ -117,17 +106,6 @@ private:
 
     }
 
-    //typedef transform_width< binary_from_base64<remove_whitespace<std::string::const_iterator> >, 8, 6 > it_binary_t;
-/*
-    std::string b64Encode(const std::string& binaryStr)
-    {
-        typedef insert_linebreaks<base64_from_binary<transform_width<std::string::const_iterator,6,8> >, 72 > it_base64_t;
-        unsigned int writePaddChars = (3-binaryStr.length()%3)%3;
-        std::string base64(it_base64_t(binaryStr.begin()),it_base64_t(binaryStr.end()));
-        base64.append(writePaddChars,'=');
-        return base64;
-    }
-*/
     void handle_resolve(const boost::system::error_code& err,
                         tcp::resolver::iterator endpoint_iterator)
     {
@@ -181,7 +159,7 @@ private:
             std::cout << "Connect failed: " << err.message() << "\n";
         }
     }
-// a2fqn2y3y2.execute-api.us-east-1.amazonaws.com /prod/mxnet-test-dev-hello /Users/durst/dev/F16-17/vass/mxnet-serverless/testimg.jpg
+
     void handle_handshake(const boost::system::error_code& error)
     {
         if (!error)
